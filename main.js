@@ -11,28 +11,30 @@ function init() {
     }
 
     /* creating objects */
-    var box = getBox(1, 1, 1);                                                                                  //calling getBox function
-    var plane = getPlane(20);                                                                                   //calling getPlabe function
-    var pointLight = getPointLight(1);                                                                          //calling getPointLight function
+    var plane = getPlane(30);                                                                                   //calling getPlabe function
+    var spotLight = getSpotLight(1);                                                                            //calling getPointLight function
     var sphere = getSphere(0.05);                                                                               //calling getSphere function
+    var boxGrid = getBoxGrid(10, 1.5);
 
     plane.name = 'plane-1';                                                                                     //setting up plane name
 
     /* transforming objects */
-    box.position.y = box.geometry.parameters.height/2;                                                          //setting up box position
     plane.rotation.x = Math.PI/2;                                                                               //rotating plane using "Math" module
-    pointLight.position.y = 2;                                                                                  //setting up point light position
-    pointLight.intensity = 2;                                                                                   //setting up pointlight intensity
+    spotLight.position.y = 4;                                                                                  //setting up point light position
+    spotLight.intensity = 2;                                                                                   //setting up spotLight intensity
 
     /* creating interface */
-    gui.add(pointLight, 'intensity', 0, 10);                                                                    //creating user interface controller
-    gui.add(pointLight.position, 'y', 0, 5);
+    gui.add(spotLight, 'intensity', 0, 10);
+    gui.add(spotLight.position, 'x', 0, 20);                                                                    //creating user interface controller
+    gui.add(spotLight.position, 'y', 0, 20);
+    gui.add(spotLight.position, 'z', 0, 20);
+    gui.add(spotLight, 'penumbra', 0, 1);
 
     /* adding objects to the scene */
-    scene.add(box);                                                                                             //adding box object to the scene
     scene.add(plane);                                                                                           //adding plane object to the scene
-    scene.add(pointLight);                                                                                      //adding point light object to the scene
-    pointLight.add(sphere);                                                                                     //adding light bulb object to the scene
+    scene.add(spotLight);                                                                                      //adding point light object to the scene
+    spotLight.add(sphere);                                                                                     //adding light bulb object to the scene
+    scene.add(boxGrid);
 
     /* setting up camera */
     var camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 1000);                //creating camera
@@ -74,6 +76,29 @@ function getBox(w, h, d) {
 
 }
 
+/* creating a grid of boxes */
+function getBoxGrid(amount, separationMultiplier) {
+	var group = new THREE.Group();
+
+	for (var i=0; i<amount; i++) {
+		var obj = getBox(1, 1, 1);
+		obj.position.x = i * separationMultiplier;
+		obj.position.y = obj.geometry.parameters.height/2;
+		group.add(obj);
+		for (var j=1; j<amount; j++) {
+			var obj = getBox(1, 1, 1);
+			obj.position.x = i * separationMultiplier;
+			obj.position.y = obj.geometry.parameters.height/2;
+			obj.position.z = j * separationMultiplier;
+			group.add(obj);
+		}
+	}
+
+	group.position.x = -(separationMultiplier * (amount-1))/2;
+	group.position.z = -(separationMultiplier * (amount-1))/2;
+
+	return group;
+}
 
 /* creating sphere object */
 function getSphere(size) {
@@ -110,6 +135,19 @@ function getPointLight(intensity) {
 
 }
 
+/* creating spot light object */
+function getSpotLight(intensity) {
+    
+    var light = new THREE.SpotLight(0xffffff, intensity);                                                      //setting up point light using color and intensity
+    light.castShadow = true;                                                                                    //setting up the light to cast shadows
+
+    light.shadow.bias = 0.001;
+    light.shadow.mapSize.width = 2048;
+    light.shadow.mapSize.height = 2048;
+
+    return light;
+
+}
 
 /* setting up frame updates */
 function update(renderer, scene, camera, controls) {
