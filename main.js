@@ -12,29 +12,34 @@ function init() {
 
     /* creating objects */
     var plane = getPlane(30);                                                                                   //calling getPlabe function
-    var spotLight = getSpotLight(1);                                                                            //calling getPointLight function
+    var DirectionalLight = getDirectionalLight(1);                                                                            //calling getPointLight function
     var sphere = getSphere(0.05);                                                                               //calling getSphere function
     var boxGrid = getBoxGrid(10, 1.5);
+    var helper = new THREE.CameraHelper(DirectionalLight.shadow.camera)
+    var ambientLight = getAmbientLight(1);
 
     plane.name = 'plane-1';                                                                                     //setting up plane name
 
     /* transforming objects */
     plane.rotation.x = Math.PI/2;                                                                               //rotating plane using "Math" module
-    spotLight.position.y = 4;                                                                                  //setting up point light position
-    spotLight.intensity = 2;                                                                                   //setting up spotLight intensity
+    DirectionalLight.position.x = 13;                                                                            //setting up point light position
+    DirectionalLight.position.y = 10;
+    DirectionalLight.position.z = 10;    
+    DirectionalLight.intensity = 2;                                                                             //setting up DirectionalLight intensity
 
     /* creating interface */
-    gui.add(spotLight, 'intensity', 0, 10);
-    gui.add(spotLight.position, 'x', 0, 20);                                                                    //creating user interface controller
-    gui.add(spotLight.position, 'y', 0, 20);
-    gui.add(spotLight.position, 'z', 0, 20);
-    gui.add(spotLight, 'penumbra', 0, 1);
+    gui.add(DirectionalLight, 'intensity', 0, 10);
+    gui.add(DirectionalLight.position, 'x', 0, 20);                                                             //creating user interface controller
+    gui.add(DirectionalLight.position, 'y', 0, 20);
+    gui.add(DirectionalLight.position, 'z', 0, 20);
 
     /* adding objects to the scene */
     scene.add(plane);                                                                                           //adding plane object to the scene
-    scene.add(spotLight);                                                                                      //adding point light object to the scene
-    spotLight.add(sphere);                                                                                     //adding light bulb object to the scene
+    scene.add(DirectionalLight);                                                                                //adding point light object to the scene
+    DirectionalLight.add(sphere);                                                                               //adding light bulb object to the scene
     scene.add(boxGrid);
+    scene.add(helper);
+    scene.add(ambientLight);
 
     /* setting up camera */
     var camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 1000);                //creating camera
@@ -138,12 +143,36 @@ function getPointLight(intensity) {
 /* creating spot light object */
 function getSpotLight(intensity) {
     
-    var light = new THREE.SpotLight(0xffffff, intensity);                                                      //setting up point light using color and intensity
+    var light = new THREE.SpotLight(0xffffff, intensity);                                                       //setting up spot light using color and intensity
     light.castShadow = true;                                                                                    //setting up the light to cast shadows
 
     light.shadow.bias = 0.001;
     light.shadow.mapSize.width = 2048;
     light.shadow.mapSize.height = 2048;
+
+    return light;
+
+}
+
+/* creating directional light object */
+function getDirectionalLight(intensity) {
+    
+    var light = new THREE.DirectionalLight(0xffffff, intensity);                                                //setting up directional light using color and intensity
+    light.castShadow = true;                                                                                    //setting up the light to cast shadows
+
+    light.shadow.camera.left = -10;                                                                             //setting up the left bound of directional light
+    light.shadow.camera.right = 10;                                                                             //setting up the right bound of directional light
+    light.shadow.camera.top = -10;                                                                              //setting up the top bound of directional light
+    light.shadow.camera.bottom = 10;                                                                            //setting up the bottom bound of directional light
+
+    return light;
+
+}
+
+/* creating ambient light object */
+function getAmbientLight(intensity) {
+    
+    var light = new THREE.AmbientLight('rgb(10, 30, 50)', intensity);                                                      //setting up ambient light using color and intensity
 
     return light;
 
