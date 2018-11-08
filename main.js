@@ -3,6 +3,7 @@ function init() {
 
     var scene = new THREE.Scene();                                                                              //initialising scene
     var gui = new dat.GUI();                                                                                    //initialising dat.gui
+    var clock = new THREE.Clock();
 
     /* setting up fog */
     var enableFog = false;                                                                                      //fog trigger
@@ -12,40 +13,37 @@ function init() {
 
     /* creating objects */
     var plane = getPlane(30);                                                                                   //calling getPlabe function
-    var DirectionalLight = getDirectionalLight(1);                                                                            //calling getPointLight function
+    var DirectionalLight = getDirectionalLight(1);                                                              //calling getPointLight function
     var sphere = getSphere(0.05);                                                                               //calling getSphere function
     var boxGrid = getBoxGrid(10, 1.5);
-    var helper = new THREE.CameraHelper(DirectionalLight.shadow.camera)
-    var ambientLight = getAmbientLight(1);
+    boxGrid.name = 'boxGrid';
 
     plane.name = 'plane-1';                                                                                     //setting up plane name
 
     /* transforming objects */
     plane.rotation.x = Math.PI/2;                                                                               //rotating plane using "Math" module
-    DirectionalLight.position.x = 13;                                                                            //setting up point light position
+    DirectionalLight.position.x = 13;                                                                           //setting up point light position
     DirectionalLight.position.y = 10;
     DirectionalLight.position.z = 10;    
     DirectionalLight.intensity = 2;                                                                             //setting up DirectionalLight intensity
 
+    /* adding objects to the scene */
+    scene.add(plane);                                                                                           //adding plane object to the scene
+    scene.add(boxGrid);
+    scene.add(DirectionalLight);                                                                                //adding point light object to the scene
+    DirectionalLight.add(sphere);                                                                               //adding light bulb object to the scene
+    
     /* creating interface */
     gui.add(DirectionalLight, 'intensity', 0, 10);
     gui.add(DirectionalLight.position, 'x', 0, 20);                                                             //creating user interface controller
     gui.add(DirectionalLight.position, 'y', 0, 20);
     gui.add(DirectionalLight.position, 'z', 0, 20);
 
-    /* adding objects to the scene */
-    scene.add(plane);                                                                                           //adding plane object to the scene
-    scene.add(DirectionalLight);                                                                                //adding point light object to the scene
-    DirectionalLight.add(sphere);                                                                               //adding light bulb object to the scene
-    scene.add(boxGrid);
-    scene.add(helper);
-    scene.add(ambientLight);
-
     /* setting up camera */
     var camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 1000);                //creating camera
-    camera.position.x = 1;                                                                                      //setting up camera X position
-    camera.position.y = 2;                                                                                      //setting up camera Y position
-    camera.position.z = 5;                                                                                      //setting up camera Z position
+    camera.position.x = 10;                                                                                      //setting up camera X position
+    camera.position.y = 18;                                                                                      //setting up camera Y position
+    camera.position.z = -18;                                                                                      //setting up camera Z position
     camera.lookAt (new THREE.Vector3(0, 0, 0));                                                                 //setting up camera target
     
     /* setting up renderer */
@@ -62,7 +60,7 @@ function init() {
     
     var controls = new THREE.OrbitControls(camera, renderer.domElement);                                        //assigning controls
 
-    update(renderer, scene, camera, controls);                                                                  //calling "update" function
+    update(renderer, scene, camera, controls, clock);                                                                  //calling "update" function
 
     return scene;
 
@@ -179,11 +177,21 @@ function getAmbientLight(intensity) {
 }
 
 /* setting up frame updates */
-function update(renderer, scene, camera, controls) {
+function update(renderer, scene, camera, controls, clock) {
     
     renderer.render(scene, camera);                                                                             //calling render method using the "scene" and "camera" as arguments
+
     controls.update();
-    requestAnimationFrame(function() {update(renderer, scene, camera, controls);})                              //creating recursive function to continiously update scene
+
+    var timeElapsed = clock.getElapsedTime();
+
+    var boxGrid = scene.getObjectByName('boxGrid');
+    boxGrid.children.forEach(function(child, index) {
+        child.scale.y = (Math.sin(timeElapsed * 3 + index) + 1) / 2 + 0.001;
+        child.position.y = child.scale.y/2;
+    });
+
+    requestAnimationFrame(function() {update(renderer, scene, camera, controls, clock);})                              //creating recursive function to continiously update scene
 
 }
 
